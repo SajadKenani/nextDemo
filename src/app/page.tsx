@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import KeyMatricsCard from "@/components/main/keyMatricsCard";
 import AnalysisComponent from "@/components/main/chart";
-import Footer from "@/components/main/footer";
+
 // import useFetchHandlers from "./Auth/APIs";
 
 // interface DataItem {
@@ -121,7 +121,6 @@ export default function Home() {
 
         <AnalysisComponent data={data} />
 
-        <Footer />
       </div>
     </div>
   );

@@ -1,9 +1,6 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, LineChart, Line } from 'recharts';
 
-
-const COLORS: string[] = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-red-500'];
-
 // Function to process API data into chart format
 const processApiData = (apiData: ApiResponse): ChartDataItem[] => {
   const listings = apiData.result.data.json.listingsGroupBy;
@@ -48,31 +45,6 @@ const generateVolumeOverTimeData = (chartData: ChartDataItem[]): VolumeOverTimeD
       week4: Math.round(baseVolume * (0.8 + Math.random() * 0.4))
     };
   });
-};
-
-// Function to generate price distribution data
-const generatePriceDistributionData = (item: ChartDataItem): DistributionData[] => {
-  const data: DistributionData[] = [];
-  const range = item.maxPrice - item.minPrice;
-  const steps = 20;
-  const stepSize = range / steps;
-  
-  for (let i = 0; i <= steps; i++) {
-    const price = item.minPrice + (i * stepSize);
-    // Simulate normal distribution around average price
-    const distanceFromAvg = Math.abs(price - item.avgPrice);
-    const normalizedDistance = distanceFromAvg / (range / 2);
-    const frequency = Math.exp(-Math.pow(normalizedDistance * 2, 2)) * item.count * 0.1;
-    const cumulative = (i / steps) * item.count;
-    
-    data.push({
-      price: price,
-      frequency: frequency,
-      cumulative: cumulative
-    });
-  }
-  
-  return data;
 };
 
 // Card components
@@ -224,106 +196,7 @@ const AnalysisComponent: React.FC<AnalysisComponentProps> = ({ data }) => {
           </Card>
         </div>
 
-        {/* Individual Item Price Distribution Curves */}
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-white">Price Distribution Curves</h3>
-          {chartData.map((item: ChartDataItem, index: number) => {
-            const distributionData: DistributionData[] = generatePriceDistributionData(item);
-            
-            return (
-              <Card key={item.name} className="bg-slate-900 border-slate-800">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full ${COLORS[index % COLORS.length]}`}></div>
-                    <div>
-                      <CardTitle className="text-white">{item.name} - Price Distribution</CardTitle>
-                      <CardDescription className="text-slate-400">
-                        Distribution curve showing price frequency (simulated normal distribution)
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Distribution Curve */}
-                    <div className="lg:col-span-2">
-                      <ResponsiveContainer width="100%" height={250}>
-                        <LineChart data={distributionData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                          <XAxis 
-                            dataKey="price" 
-                            stroke="#94a3b8"
-                            fontSize={12}
-                            tickFormatter={(value: number) => `$${value.toFixed(0)}`}
-                          />
-                          <YAxis 
-                            stroke="#94a3b8"
-                            fontSize={12}
-                            tickFormatter={(value: number) => value.toFixed(1)}
-                          />
-                          <Tooltip 
-                            contentStyle={{ 
-                              backgroundColor: '#1e293b', 
-                              border: '1px solid #475569',
-                              borderRadius: '8px',
-                              color: '#f1f5f9'
-                            }}
-                            formatter={(value: number, name: string) => [
-                              name === 'frequency' ? `${value.toFixed(2)} items` : `${value.toFixed(2)}`,
-                              name === 'frequency' ? 'Frequency' : 'Cumulative'
-                            ]}
-                            labelFormatter={(value: number) => `Price: $${value.toFixed(2)}`}
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="frequency" 
-                            stroke={index === 0 ? '#3b82f6' : index === 1 ? '#10b981' : '#f59e0b'} 
-                            strokeWidth={3}
-                            dot={false}
-                            name="frequency"
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="cumulative" 
-                            stroke={index === 0 ? '#93c5fd' : index === 1 ? '#86efac' : '#fcd34d'} 
-                            strokeWidth={2}
-                            strokeDasharray="5 5"
-                            dot={false}
-                            name="cumulative"
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                    
-                    {/* Stats Panel */}
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                          <div className="text-sm text-slate-400">Items Sold</div>
-                          <div className="text-2xl font-bold text-white">{item.count}</div>
-                        </div>
-                        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                          <div className="text-sm text-slate-400">Total Volume</div>
-                          <div className="text-2xl font-bold text-green-400">${item.volume.toLocaleString()}</div>
-                        </div>
-                        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                          <div className="text-sm text-slate-400">Average Price</div>
-                          <div className="text-2xl font-bold text-blue-400">${item.avgPrice.toFixed(2)}</div>
-                        </div>
-                        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                          <div className="text-sm text-slate-400">Price Range</div>
-                          <div className="text-lg font-bold text-white">
-                            ${item.minPrice} - ${item.maxPrice}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+      
       </div>
     </div>
   );
