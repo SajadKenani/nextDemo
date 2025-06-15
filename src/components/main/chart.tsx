@@ -48,41 +48,41 @@ const generateVolumeOverTimeData = (chartData: ChartDataItem[]): VolumeOverTimeD
 };
 
 // Card components
-const Card: React.FC<CardProps> = ({ children, className = "" }) => (
+const Card = ({ children, className = "" }: any) => (
   <div className={`rounded-lg border ${className}`}>
     {children}
   </div>
 );
 
-const CardHeader: React.FC<CardHeaderProps> = ({ children }) => (
+const CardHeader = ({ children }: any) => (
   <div className="p-6 pb-4">
     {children}
   </div>
 );
 
-const CardTitle: React.FC<CardTitleProps> = ({ children, className = "" }) => (
+const CardTitle = ({ children, className = "" }: any) => (
   <h3 className={`text-lg font-semibold ${className}`}>
     {children}
   </h3>
 );
 
-const CardDescription: React.FC<CardDescriptionProps> = ({ children, className = "" }) => (
+const CardDescription = ({ children, className = "" }: any) => (
   <p className={`text-sm mt-1 ${className}`}>
     {children}
   </p>
 );
 
-const CardContent: React.FC<CardContentProps> = ({ children }) => (
+const CardContent = ({ children }: any) => (
   <div className="p-6 pt-0">
     {children}
   </div>
 );
 
 // Main component
-const AnalysisComponent: React.FC<AnalysisComponentProps> = ({ data }) => {
-  const chartData: ChartDataItem[] = processApiData(data);
-  const priceTrendsData: PriceTrendsData[] = generatePriceTrendsData(chartData);
-  const volumeOverTimeData: VolumeOverTimeData[] = generateVolumeOverTimeData(chartData);
+const AnalysisComponent = ({ data }: any) => {
+  const chartData = processApiData(data);
+  const priceTrendsData = generatePriceTrendsData(chartData);
+  const volumeOverTimeData = generateVolumeOverTimeData(chartData);
 
   return (
     <div className="min-h-screen bg-slate-950">

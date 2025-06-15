@@ -67,16 +67,7 @@ export default function Home() {
 
   const { totalListingsSold, totalVolume, totalMarketplaceFees, listingsGroupBy } = dashboardData;
 
-  // Transform data for charts
-  const chartData: ChartDataItem[] = listingsGroupBy.map((item: ListingGroupBy) => ({
-    name: item.item.charAt(0).toUpperCase() + item.item.slice(1),
-    count: item._count._all,
-    volume: parseFloat(item._sum.buyNowPrice),
-    fees: parseFloat(item._sum.marketplaceFee),
-    avgPrice: parseFloat(item._sum.buyNowPrice) / item._count._all,
-    maxPrice: parseFloat(item._max.buyNowPrice),
-    minPrice: parseFloat(item._min.buyNowPrice)
-  }));
+
 
   // Calculate additional metrics
   const avgOrderValue: number = parseFloat(totalVolume) / totalListingsSold;
