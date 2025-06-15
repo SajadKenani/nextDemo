@@ -1,23 +1,5 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, LineChart, Line } from 'recharts';
-
-// Type definitions
-interface ApiListingItem {
-  item: string;
-  _sum: {
-    buyNowPrice: string;
-  };
-  _count: {
-    _all: number;
-  };
-  _min: {
-    buyNowPrice: string;
-  };
-  _max: {
-    buyNowPrice: string;
-  };
-}
-
 interface ApiResponse {
   result: {
     data: {
@@ -27,64 +9,6 @@ interface ApiResponse {
     };
   };
 }
-
-interface ChartDataItem {
-  name: string;
-  count: number;
-  volume: number;
-  avgPrice: number;
-  minPrice: number;
-  maxPrice: number;
-}
-
-interface PriceTrendsData {
-  category: string;
-  minPrice: number;
-  avgPrice: number;
-  maxPrice: number;
-}
-
-interface VolumeOverTimeData {
-  category: string;
-  week1: number;
-  week2: number;
-  week3: number;
-  week4: number;
-}
-
-interface DistributionData {
-  price: number;
-  frequency: number;
-  cumulative: number;
-}
-
-interface CardProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-interface CardHeaderProps {
-  children: React.ReactNode;
-}
-
-interface CardTitleProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-interface CardDescriptionProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-interface CardContentProps {
-  children: React.ReactNode;
-}
-
-interface AnalysisComponentProps {
-  data: ApiResponse;
-}
-
 // Constants
 const COLORS: string[] = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-red-500'];
 
@@ -203,7 +127,7 @@ const formatTooltipValue = (value: number, name: string): [string, string] => {
 };
 
 // Main component
-const AnalysisComponent: React.FC<AnalysisComponentProps> = ({ data }) => {
+const AnalysisComponent: React.FC<any> = ({ data }) => {
   const chartData: ChartDataItem[] = processApiData(data);
   const priceTrendsData: PriceTrendsData[] = generatePriceTrendsData(chartData);
   const volumeOverTimeData: VolumeOverTimeData[] = generateVolumeOverTimeData(chartData);
@@ -422,8 +346,8 @@ const AnalysisComponent: React.FC<AnalysisComponentProps> = ({ data }) => {
 };
 
 // Demo component with sample data
-const DemoAnalysisComponent: React.FC = () => {
-  const sampleData: ApiResponse = {
+const DemoAnalysisComponent: any = () => {
+  const sampleData: any = {
     result: {
       data: {
         json: {

@@ -2,14 +2,14 @@
 import { useEffect, useState } from "react";
 import KeyMatricsCard from "@/components/main/keyMatricsCard";
 import AnalysisComponent from "@/components/main/chart";
-
+import React from "react";
 // import useFetchHandlers from "./Auth/APIs";
 
 // interface DataItem {
 //   // Define your data item structure here
 // }
 
-const data: ApiResponse = {
+const data: any = {
   "result": {
     "data": {
       "json": {

@@ -138,3 +138,76 @@ interface CardContentProps {
 interface AnalysisComponentProps {
   data: ApiResponse;
 }
+
+// Type definitions
+interface ApiListingItem {
+  item: string;
+  _sum: {
+    buyNowPrice: string;
+  };
+  _count: {
+    _all: number;
+  };
+  _min: {
+    buyNowPrice: string;
+  };
+  _max: {
+    buyNowPrice: string;
+  };
+}
+
+
+
+interface ChartDataItem {
+  name: string;
+  count: number;
+  volume: number;
+  avgPrice: number;
+  minPrice: number;
+  maxPrice: number;
+}
+
+interface PriceTrendsData {
+  category: string;
+  minPrice: number;
+  avgPrice: number;
+  maxPrice: number;
+}
+
+interface VolumeOverTimeData {
+  category: string;
+  week1: number;
+  week2: number;
+  week3: number;
+  week4: number;
+}
+
+interface DistributionData {
+  price: number;
+  frequency: number;
+  cumulative: number;
+}
+
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardHeaderProps {
+  children: React.ReactNode;
+}
+
+interface CardTitleProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardDescriptionProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+
+interface AnalysisComponentProps {
+  data: ApiResponse;
+}
