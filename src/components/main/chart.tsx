@@ -1,6 +1,93 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, LineChart, Line } from 'recharts';
 
+// Type definitions
+interface ApiListingItem {
+  item: string;
+  _sum: {
+    buyNowPrice: string;
+  };
+  _count: {
+    _all: number;
+  };
+  _min: {
+    buyNowPrice: string;
+  };
+  _max: {
+    buyNowPrice: string;
+  };
+}
+
+interface ApiResponse {
+  result: {
+    data: {
+      json: {
+        listingsGroupBy: ApiListingItem[];
+      };
+    };
+  };
+}
+
+interface ChartDataItem {
+  name: string;
+  count: number;
+  volume: number;
+  avgPrice: number;
+  minPrice: number;
+  maxPrice: number;
+}
+
+interface PriceTrendsData {
+  category: string;
+  minPrice: number;
+  avgPrice: number;
+  maxPrice: number;
+}
+
+interface VolumeOverTimeData {
+  category: string;
+  week1: number;
+  week2: number;
+  week3: number;
+  week4: number;
+}
+
+interface DistributionData {
+  price: number;
+  frequency: number;
+  cumulative: number;
+}
+
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardHeaderProps {
+  children: React.ReactNode;
+}
+
+interface CardTitleProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardDescriptionProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardContentProps {
+  children: React.ReactNode;
+}
+
+interface AnalysisComponentProps {
+  data: ApiResponse;
+}
+
+// Constants
+const COLORS: string[] = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-red-500'];
+
 // Function to process API data into chart format
 const processApiData = (apiData: ApiResponse): ChartDataItem[] => {
   const listings = apiData.result.data.json.listingsGroupBy;
@@ -47,47 +134,83 @@ const generateVolumeOverTimeData = (chartData: ChartDataItem[]): VolumeOverTimeD
   });
 };
 
+// Function to generate price distribution data
+const generatePriceDistributionData = (item: ChartDataItem): DistributionData[] => {
+  const data: DistributionData[] = [];
+  const range = item.maxPrice - item.minPrice;
+  const steps = 20;
+  const stepSize = range / steps;
+  
+  for (let i = 0; i <= steps; i++) {
+    const price = item.minPrice + (i * stepSize);
+    // Simulate normal distribution around average price
+    const distanceFromAvg = Math.abs(price - item.avgPrice);
+    const normalizedDistance = distanceFromAvg / (range / 2);
+    const frequency = Math.exp(-Math.pow(normalizedDistance * 2, 2)) * item.count * 0.1;
+    const cumulative = (i / steps) * item.count;
+    
+    data.push({
+      price: price,
+      frequency: frequency,
+      cumulative: cumulative
+    });
+  }
+  
+  return data;
+};
+
 // Card components
-const Card = ({ children, className = "" }: any) => (
+const Card: React.FC<CardProps> = ({ children, className = "" }) => (
   <div className={`rounded-lg border ${className}`}>
     {children}
   </div>
 );
 
-const CardHeader = ({ children }: any) => (
+const CardHeader: React.FC<CardHeaderProps> = ({ children }) => (
   <div className="p-6 pb-4">
     {children}
   </div>
 );
 
-const CardTitle = ({ children, className = "" }: any) => (
+const CardTitle: React.FC<CardTitleProps> = ({ children, className = "" }) => (
   <h3 className={`text-lg font-semibold ${className}`}>
     {children}
   </h3>
 );
 
-const CardDescription = ({ children, className = "" }: any) => (
+const CardDescription: React.FC<CardDescriptionProps> = ({ children, className = "" }) => (
   <p className={`text-sm mt-1 ${className}`}>
     {children}
   </p>
 );
 
-const CardContent = ({ children }: any) => (
+const CardContent: React.FC<CardContentProps> = ({ children }) => (
   <div className="p-6 pt-0">
     {children}
   </div>
 );
 
+// Custom tooltip formatters with proper typing
+const formatCurrency = (value: number): string => `$${value}`;
+const formatTooltipValue = (value: number, name: string): [string, string] => {
+  if (name === 'frequency') {
+    return [`${value.toFixed(2)} items`, 'Frequency'];
+  }
+  if (name === 'cumulative') {
+    return [`${value.toFixed(2)}`, 'Cumulative'];
+  }
+  return [`$${value}`, name];
+};
+
 // Main component
-const AnalysisComponent = ({ data }: any) => {
-  const chartData = processApiData(data);
-  const priceTrendsData = generatePriceTrendsData(chartData);
-  const volumeOverTimeData = generateVolumeOverTimeData(chartData);
+const AnalysisComponent: React.FC<AnalysisComponentProps> = ({ data }) => {
+  const chartData: ChartDataItem[] = processApiData(data);
+  const priceTrendsData: PriceTrendsData[] = generatePriceTrendsData(chartData);
+  const volumeOverTimeData: VolumeOverTimeData[] = generateVolumeOverTimeData(chartData);
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-950 p-6">
       <div className="space-y-6">
-    
         {/* Price Trends Curves */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="bg-slate-900 border-slate-800">
@@ -107,7 +230,7 @@ const AnalysisComponent = ({ data }: any) => {
                   <YAxis 
                     stroke="#94a3b8"
                     fontSize={12}
-                    tickFormatter={(value: number) => `$${value}`}
+                    tickFormatter={formatCurrency}
                   />
                   <Tooltip 
                     contentStyle={{ 
@@ -143,7 +266,7 @@ const AnalysisComponent = ({ data }: any) => {
                   <YAxis 
                     stroke="#94a3b8"
                     fontSize={12}
-                    tickFormatter={(value: number) => `$${value}`}
+                    tickFormatter={formatCurrency}
                   />
                   <Tooltip 
                     contentStyle={{ 
@@ -196,12 +319,143 @@ const AnalysisComponent = ({ data }: any) => {
           </Card>
         </div>
 
-      
+        {/* Individual Item Price Distribution Curves */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-white">Price Distribution Curves</h3>
+          {chartData.map((item: ChartDataItem, index: number) => {
+            const distributionData: DistributionData[] = generatePriceDistributionData(item);
+            
+            return (
+              <Card key={item.name} className="bg-slate-900 border-slate-800">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full ${COLORS[index % COLORS.length]}`}></div>
+                    <div>
+                      <CardTitle className="text-white">{item.name} - Price Distribution</CardTitle>
+                      <CardDescription className="text-slate-400">
+                        Distribution curve showing price frequency (simulated normal distribution)
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Distribution Curve */}
+                    <div className="lg:col-span-2">
+                      <ResponsiveContainer width="100%" height={250}>
+                        <LineChart data={distributionData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                          <XAxis 
+                            dataKey="price" 
+                            stroke="#94a3b8"
+                            fontSize={12}
+                            tickFormatter={(value: number) => `$${value.toFixed(0)}`}
+                          />
+                          <YAxis 
+                            stroke="#94a3b8"
+                            fontSize={12}
+                            tickFormatter={(value: number) => value.toFixed(1)}
+                          />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: '#1e293b', 
+                              border: '1px solid #475569',
+                              borderRadius: '8px',
+                              color: '#f1f5f9'
+                            }}
+                            formatter={formatTooltipValue}
+                            labelFormatter={(value: number) => `Price: $${value.toFixed(2)}`}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="frequency" 
+                            stroke={index === 0 ? '#3b82f6' : index === 1 ? '#10b981' : '#f59e0b'} 
+                            strokeWidth={3}
+                            dot={false}
+                            name="frequency"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="cumulative" 
+                            stroke={index === 0 ? '#93c5fd' : index === 1 ? '#86efac' : '#fcd34d'} 
+                            strokeWidth={2}
+                            strokeDasharray="5 5"
+                            dot={false}
+                            name="cumulative"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    
+                    {/* Stats Panel */}
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                          <div className="text-sm text-slate-400">Items Sold</div>
+                          <div className="text-2xl font-bold text-white">{item.count}</div>
+                        </div>
+                        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                          <div className="text-sm text-slate-400">Total Volume</div>
+                          <div className="text-2xl font-bold text-green-400">${item.volume.toLocaleString()}</div>
+                        </div>
+                        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                          <div className="text-sm text-slate-400">Average Price</div>
+                          <div className="text-2xl font-bold text-blue-400">${item.avgPrice.toFixed(2)}</div>
+                        </div>
+                        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                          <div className="text-sm text-slate-400">Price Range</div>
+                          <div className="text-lg font-bold text-white">
+                            ${item.minPrice} - ${item.maxPrice}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 };
 
+// Demo component with sample data
+const DemoAnalysisComponent: React.FC = () => {
+  const sampleData: ApiResponse = {
+    result: {
+      data: {
+        json: {
+          listingsGroupBy: [
+            {
+              item: "electronics",
+              _sum: { buyNowPrice: "15000" },
+              _count: { _all: 50 },
+              _min: { buyNowPrice: "100" },
+              _max: { buyNowPrice: "800" }
+            },
+            {
+              item: "books",
+              _sum: { buyNowPrice: "2500" },
+              _count: { _all: 75 },
+              _min: { buyNowPrice: "10" },
+              _max: { buyNowPrice: "120" }
+            },
+            {
+              item: "clothing",
+              _sum: { buyNowPrice: "8500" },
+              _count: { _all: 120 },
+              _min: { buyNowPrice: "25" },
+              _max: { buyNowPrice: "200" }
+            }
+          ]
+        }
+      }
+    }
+  };
 
+  return <AnalysisComponent data={sampleData} />;
+};
 
-export default AnalysisComponent;
+export default DemoAnalysisComponent;
