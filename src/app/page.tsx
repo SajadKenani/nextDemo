@@ -1,15 +1,35 @@
 'use client'
+
 import { useEffect, useState } from "react";
 import KeyMatricsCard from "@/components/main/keyMatricsCard";
 import AnalysisComponent from "@/components/main/chart";
 import React from "react";
-// import useFetchHandlers from "./Auth/APIs";
 
-// interface DataItem {
-//   // Define your data item structure here
-// }
+// Define types for dashboard data
+interface ListingGroup {
+  _count: { _all: number };
+  _sum: { buyNowPrice: string; marketplaceFee: string };
+  _max: { buyNowPrice: string; marketplaceFee: string };
+  _min: { buyNowPrice: string; marketplaceFee: string };
+  item: string;
+}
 
-const data: any = {
+interface DashboardData {
+  totalListingsSold: number;
+  totalVolume: string;
+  totalMarketplaceFees: string;
+  listingsGroupBy: ListingGroup[];
+}
+
+interface ApiResponse {
+  result: {
+    data: {
+      json: DashboardData;
+    };
+  };
+}
+
+const data: ApiResponse = {
   "result": {
     "data": {
       "json": {
@@ -45,14 +65,10 @@ const data: any = {
 };
 
 export default function Home() {
-  // const [data, setData] = useState<DataItem[]>([])
-  // const { HandleDataFetching } = useFetchHandlers()
-
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // HandleDataFetching(setData)
     setDashboardData(data.result.data.json);
     setLoading(false);
   }, []);
@@ -65,9 +81,7 @@ export default function Home() {
     );
   }
 
-  const { totalListingsSold, totalVolume, totalMarketplaceFees, listingsGroupBy } = dashboardData;
-
-
+  const { totalListingsSold, totalVolume, totalMarketplaceFees } = dashboardData;
 
   // Calculate additional metrics
   const avgOrderValue: number = parseFloat(totalVolume) / totalListingsSold;
@@ -79,7 +93,6 @@ export default function Home() {
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold text-white"> Dashboard </h1>
-
         </div>
 
         {/* Key Metrics Cards */}
@@ -110,6 +123,7 @@ export default function Home() {
 
         </div>
 
+        {/* Pass the correct ApiResponse shape */}
         <AnalysisComponent data={data} />
 
       </div>

@@ -1,6 +1,6 @@
 interface RequestOptions {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  body?: any;
+  body?: unknown;
 }
 
 const LINK_URL = 'https://dev.crm.newyolk.io/api';
@@ -8,7 +8,7 @@ const LINK_URL = 'https://dev.crm.newyolk.io/api';
 const fetchFromApi = async (
   path: string, 
   { method, body }: RequestOptions
-): Promise<any> => {
+): Promise<unknown> => {
   try {
 
     const headers: Record<string, string> = {
@@ -45,19 +45,19 @@ const fetchFromApi = async (
   }
 };
 
-export const GET = async (path: string): Promise<any> => {
+export const GET = async (path: string): Promise<unknown> => {
   return fetchFromApi(path, { method: 'GET' });
 };
 
-export const POST = async (path: string, content: any = {}): Promise<any> => {
+export const POST = async (path: string, content: object = {}): Promise<unknown> => {
   return fetchFromApi(path, { method: 'POST', body: content });
 };
 
-export const PUT = async (path: string, content: any = {}): Promise<any> => {
+export const PUT = async (path: string, content: object = {}): Promise<unknown> => {
   return fetchFromApi(path, { method: 'PUT', body: content });
 };
 
-export const DELETE = async (path: string, content: any = null): Promise<any> => {
+export const DELETE = async (path: string, content: object | null = null): Promise<unknown> => {
   const options: RequestOptions = { method: 'DELETE' };
   if (content !== null) {
     options.body = content;

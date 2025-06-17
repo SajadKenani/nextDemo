@@ -1,28 +1,96 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, LineChart, Line } from 'recharts';
+
+// Type definitions
+interface ListingGroup {
+  _count: { _all: number };
+  _sum: { buyNowPrice: string; marketplaceFee: string };
+  _max: { buyNowPrice: string; marketplaceFee: string };
+  _min: { buyNowPrice: string; marketplaceFee: string };
+  item: string;
+}
+
+interface DashboardData {
+  totalListingsSold: number;
+  totalVolume: string;
+  totalMarketplaceFees: string;
+  listingsGroupBy: ListingGroup[];
+}
+
 interface ApiResponse {
   result: {
     data: {
-      json: {
-        listingsGroupBy: ApiListingItem[];
-      };
+      json: DashboardData;
     };
   };
 }
+
+interface ChartDataItem {
+  name: string;
+  count: number;
+  volume: number;
+  avgPrice: number;
+  minPrice: number;
+  maxPrice: number;
+}
+
+interface PriceTrendsData {
+  category: string;
+  minPrice: number;
+  avgPrice: number;
+  maxPrice: number;
+}
+
+interface VolumeOverTimeData {
+  category: string;
+  week1: number;
+  week2: number;
+  week3: number;
+  week4: number;
+}
+
+interface DistributionData {
+  price: number;
+  frequency: number;
+  cumulative: number;
+}
+
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+}
+interface CardHeaderProps {
+  children: React.ReactNode;
+}
+interface CardTitleProps {
+  children: React.ReactNode;
+  className?: string;
+}
+interface CardDescriptionProps {
+  children: React.ReactNode;
+  className?: string;
+}
+interface CardContentProps {
+  children: React.ReactNode;
+}
+interface AnalysisComponentProps {
+  data: ApiResponse;
+}
+
 // Constants
 const COLORS: string[] = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-red-500'];
 
 // Function to process API data into chart format
 const processApiData = (apiData: ApiResponse): ChartDataItem[] => {
   const listings = apiData.result.data.json.listingsGroupBy;
-  
+
   return listings.map((listing) => {
     const volume = parseFloat(listing._sum.buyNowPrice);
     const count = listing._count._all;
     const avgPrice = volume / count;
     const minPrice = parseFloat(listing._min.buyNowPrice);
     const maxPrice = parseFloat(listing._max.buyNowPrice);
-    
+
     return {
       name: listing.item.charAt(0).toUpperCase() + listing.item.slice(1),
       count: count,
@@ -64,7 +132,7 @@ const generatePriceDistributionData = (item: ChartDataItem): DistributionData[] 
   const range = item.maxPrice - item.minPrice;
   const steps = 20;
   const stepSize = range / steps;
-  
+
   for (let i = 0; i <= steps; i++) {
     const price = item.minPrice + (i * stepSize);
     // Simulate normal distribution around average price
@@ -72,14 +140,14 @@ const generatePriceDistributionData = (item: ChartDataItem): DistributionData[] 
     const normalizedDistance = distanceFromAvg / (range / 2);
     const frequency = Math.exp(-Math.pow(normalizedDistance * 2, 2)) * item.count * 0.1;
     const cumulative = (i / steps) * item.count;
-    
+
     data.push({
       price: price,
       frequency: frequency,
       cumulative: cumulative
     });
   }
-  
+
   return data;
 };
 
@@ -127,13 +195,13 @@ const formatTooltipValue = (value: number, name: string): [string, string] => {
 };
 
 // Main component
-const AnalysisComponent: React.FC<any> = ({ data }) => {
+const AnalysisComponent: React.FC<AnalysisComponentProps> = ({ data }) => {
   const chartData: ChartDataItem[] = processApiData(data);
   const priceTrendsData: PriceTrendsData[] = generatePriceTrendsData(chartData);
   const volumeOverTimeData: VolumeOverTimeData[] = generateVolumeOverTimeData(chartData);
 
   return (
-    <div className="min-h-screen bg-slate-950 p-6">
+    <div className="min-h-screen bg-slate-950">
       <div className="space-y-6">
         {/* Price Trends Curves */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -246,9 +314,9 @@ const AnalysisComponent: React.FC<any> = ({ data }) => {
         {/* Individual Item Price Distribution Curves */}
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-white">Price Distribution Curves</h3>
-          {chartData.map((item: ChartDataItem, index: number) => {
+          {chartData.map((item, index) => {
             const distributionData: DistributionData[] = generatePriceDistributionData(item);
-            
+
             return (
               <Card key={item.name} className="bg-slate-900 border-slate-800">
                 <CardHeader>
@@ -345,41 +413,4 @@ const AnalysisComponent: React.FC<any> = ({ data }) => {
   );
 };
 
-// Demo component with sample data
-const DemoAnalysisComponent: any = () => {
-  const sampleData: any = {
-    result: {
-      data: {
-        json: {
-          listingsGroupBy: [
-            {
-              item: "electronics",
-              _sum: { buyNowPrice: "15000" },
-              _count: { _all: 50 },
-              _min: { buyNowPrice: "100" },
-              _max: { buyNowPrice: "800" }
-            },
-            {
-              item: "books",
-              _sum: { buyNowPrice: "2500" },
-              _count: { _all: 75 },
-              _min: { buyNowPrice: "10" },
-              _max: { buyNowPrice: "120" }
-            },
-            {
-              item: "clothing",
-              _sum: { buyNowPrice: "8500" },
-              _count: { _all: 120 },
-              _min: { buyNowPrice: "25" },
-              _max: { buyNowPrice: "200" }
-            }
-          ]
-        }
-      }
-    }
-  };
-
-  return <AnalysisComponent data={sampleData} />;
-};
-
-export default DemoAnalysisComponent;
+export default AnalysisComponent;

@@ -1,6 +1,19 @@
 import { DollarSign, Percent, ShoppingCart, TrendingUp, LucideIcon } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 
+// Define IconType and TrendType for type safety
+type IconType = "ShoppingCart" | "Percent" | "DollarSign" | "TrendingUp";
+type TrendType = "up" | "down" | "neutral";
+
+interface KeyMetricsCardProps {
+  title: string;
+  subTitle: string;
+  value: string | number;
+  icon: IconType;
+  trend?: TrendType;
+  className?: string;
+}
+
 const iconMap: Record<IconType, LucideIcon> = {
   ShoppingCart,
   Percent,
@@ -8,16 +21,16 @@ const iconMap: Record<IconType, LucideIcon> = {
   TrendingUp,
 };
 
-const KeyMetricsCard = ({ 
-  title, 
-  subTitle, 
-  value, 
-  icon, 
+const KeyMetricsCard = ({
+  title,
+  subTitle,
+  value,
+  icon,
   trend = "neutral",
-  className = "" 
+  className = ""
 }: KeyMetricsCardProps) => {
   const IconComponent = iconMap[icon];
-  
+
   const getTrendColor = () => {
     switch (trend) {
       case "up":
