@@ -1,103 +1,314 @@
-import Image from "next/image";
+'use client';
+
+import useFetchHandlers from "@/APIs/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+
+interface Student {
+  id: number;
+  name: string;
+  email: string;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [studentsData, setStudentsData] = useState<Student[]>([]);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const { 
+    HandleStudentsFetching, 
+    HandleStudentInsertion, 
+    HandleStudentDeletion, 
+    HandleStudentUpdate 
+  } = useFetchHandlers();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        await HandleStudentsFetching(setStudentsData);
+      } catch (error) {
+        console.error("Error fetching students:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [HandleStudentsFetching]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!name.trim() || !email.trim()) {
+      alert("Please fill in both fields");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (isEditMode && editingStudent) {
+        await HandleStudentUpdate(name, email, editingStudent.id);
+        setIsEditMode(false);
+        setEditingStudent(null);
+      } else {
+        await HandleStudentInsertion(
+          { name: name.trim(), email: email.trim() }, 
+          HandleStudentsFetching, 
+          setName, 
+          setEmail, 
+          setStudentsData
+        );
+      }
+      
+      // Clear form
+      setName("");
+      setEmail("");
+      
+      // Refresh data
+      await HandleStudentsFetching(setStudentsData);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEdit = (student: Student) => {
+    setEditingStudent(student);
+    setName(student.name);
+    setEmail(student.email);
+    setIsEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditingStudent(null);
+    setName("");
+    setEmail("");
+  };
+
+  const handleDelete = async (studentId: number) => {
+    if (!confirm("Are you sure you want to delete this student?")) return;
+    
+    setIsLoading(true);
+    try {
+      await HandleStudentDeletion(studentId, HandleStudentsFetching, setStudentsData);
+      await HandleStudentsFetching(setStudentsData);
+    } catch (error) {
+      console.error("Error deleting student:", error);
+      alert("Error deleting student. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isEditMode) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-gray-100 p-8 flex items-center justify-center">
+        <div className="w-full max-w-md">
+          <div className="flex items-center mb-6">
+            <Button
+              variant="ghost"
+              onClick={handleCancelEdit}
+              className="mr-4 text-gray-300 hover:text-white"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <h2 className="text-2xl font-bold text-white">Edit Student</h2>
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="bg-gray-800 rounded-lg p-8 shadow-lg space-y-6"
+            autoComplete="off"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <div>
+              <label htmlFor="edit-name" className="block mb-2 text-gray-300 font-medium">
+                Name
+              </label>
+              <Input
+                id="edit-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter student name"
+                className="bg-gray-900 text-gray-100 placeholder-gray-500 border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-md transition"
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="edit-email" className="block mb-2 text-gray-300 font-medium">
+                Email
+              </label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter student email"
+                className="bg-gray-900 text-gray-100 placeholder-gray-500 border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-md transition"
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold rounded-lg shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? "Updating..." : "Update Student"}
+              </Button>
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancelEdit}
+                disabled={isLoading}
+                className="px-6 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-gray-100 p-8">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-4xl font-extrabold mb-10 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent text-center">
+          Student Management System
+        </h1>
+
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Student List */}
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold mb-4 text-white">Students ({studentsData.length})</h2>
+            
+            {isLoading ? (
+              <div className="bg-gray-800 rounded-lg p-8 text-center">
+                <p className="text-gray-400">Loading students...</p>
+              </div>
+            ) : (
+              <div className="bg-gray-800 rounded-lg shadow-lg max-h-[600px] overflow-y-auto">
+                {studentsData.length > 0 ? (
+                  <ul className="divide-y divide-gray-700">
+                    {studentsData.map((student) => (
+                      <li
+                        key={student.id}
+                        className="p-6 hover:bg-gray-700 transition-colors"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-lg text-white mb-1">
+                              {student.name}
+                            </h3>
+                            <p className="text-sm text-gray-300 truncate">
+                              {student.email}
+                            </p>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2 ml-4">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEdit(student)}
+                              disabled={isLoading}
+                              className="border-gray-600 text-gray-300 hover:bg-blue-600 hover:text-white hover:border-blue-600"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDelete(student.id)}
+                              disabled={isLoading}
+                              className="border-gray-600 text-gray-300 hover:bg-red-600 hover:text-white hover:border-red-600"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="p-8 text-center">
+                    <p className="text-gray-500 italic">No students found.</p>
+                    <p className="text-gray-600 text-sm mt-2">Add your first student using the form.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Add Student Form */}
+          <div className="flex-1 lg:max-w-md">
+            <h2 className="text-2xl font-bold mb-4 text-white">Add New Student</h2>
+            
+            <form
+              onSubmit={handleSubmit}
+              className="bg-gray-800 rounded-lg p-8 shadow-lg space-y-6"
+              autoComplete="off"
+            >
+              <div>
+                <label htmlFor="name" className="block mb-2 text-gray-300 font-medium">
+                  Name
+                </label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter student name"
+                  className="bg-gray-900 text-gray-100 placeholder-gray-500 border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-md transition"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block mb-2 text-gray-300 font-medium">
+                  Email
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter student email"
+                  className="bg-gray-900 text-gray-100 placeholder-gray-500 border border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-md transition"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold rounded-lg shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? "Adding..." : "Add Student"}
+              </Button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

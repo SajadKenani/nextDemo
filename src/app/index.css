@@ -1,0 +1,19 @@
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px; /* Slightly thicker for better UX */
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 9999px; /* rounded track */
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ec4899, #db2777); /* pink gradient */
+  border-radius: 9999px; /* fully rounded thumb */
+  cursor: pointer;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #d6336c, #a21e4b); /* darker pink on hover */
+}
